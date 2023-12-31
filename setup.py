@@ -19,10 +19,16 @@ if not AMGX_DIR:
 else:
     if not AMGX_BUILD_DIR:
         AMGX_BUILD_DIR = os.path.join(AMGX_DIR, 'build')
-    AMGX_lib_dirs = [AMGX_BUILD_DIR]
-    AMGX_include_dirs = [
-        os.path.join(AMGX_DIR, 'include')
-    ]
+    AMGX_lib_dirs = [AMGX_BUILD_DIR, os.path.join(AMGX_BUILD_DIR, 'Release')]
+    AMGX_include_dirs = [os.path.join(AMGX_DIR, 'include')]
+
+if sys.platform == "win32":
+    runtime_lib_dirs = []
+    # find the path to .dll runtime
+    data_files = [('', [os.path.join(AMGX_BUILD_DIR, 'Release/amgxsh.dll')])]
+else:
+    runtime_lib_dirs = [numpy.get_include(),] + AMGX_lib_dirs
+    data_files = []
 
 from Cython.Build import cythonize
 ext = cythonize([
@@ -40,13 +46,12 @@ ext = cythonize([
         library_dirs = [
             numpy.get_include(),
         ] + AMGX_lib_dirs,
-        runtime_library_dirs = [
-            numpy.get_include(),
-        ] + AMGX_lib_dirs,
+        runtime_library_dirs = runtime_lib_dirs
 )])
 
 setup(name='pyamgx',
       author='Ashwin Srinath',
       version='0.1',
       ext_modules = ext,
+      data_files=data_files,
       zip_safe=False)
